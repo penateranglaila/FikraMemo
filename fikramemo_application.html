@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>FikraMemo</title>
+    <!-- Google Fonts for Default Aesthetic Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=Courier+Prime&family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,500;1,400&family=Amiri:ital,wght@0,400;0,700&display=swap" rel="stylesheet">
+    <!-- html2canvas for Image Export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <style>
+        /* Color Palette & Themes */
+        :root {
+            /* Default Mint Pastel Theme */
+            --bg-window: #e3ece6;
+            --sidebar-bg: #8ba898;
+            --sidebar-text: #ffffff;
+            --main-bg: #f2f6f3;
+            --card-bg: #ffffff;
+            --text-color: #2e3a33;
+            --accent-color: #618772;
+            --accent-hover: #4e6f5d;
+            --border-radius: 20px;
+            --card-radius: 16px;
+            --shadow-soft: 0 10px 25px rgba(0,0,0,0.06);
+            --font-main: 'Inter', sans-serif;
+        }
+
+        /* Theme Presets */
+        [data-theme="lavender"] {
+            --bg-window: #e8e3ec;
+            --sidebar-bg: #988ba8;
+            --sidebar-text: #ffffff;
+            --main-bg: #f4f2f6;
+            --card-bg: #ffffff;
+            --text-color: #332e3a;
+            --accent-color: #726187;
+            --accent-hover: #5d4d70;
+        }
+
+        [data-theme="peach"] {
+            --bg-window: #ece5e3;
+            --sidebar-bg: #a8918b;
+            --sidebar-text: #ffffff;
+            --main-bg: #f6f3f2;
+            --card-bg: #ffffff;
+            --text-color: #3a302e;
+            --accent-color: #876961;
+            --accent-hover: #6e524b;
+        }
+
+        [data-theme="light"] {
+            --bg-window: #e2e8f0;
+            --sidebar-bg: #475569;
+            --sidebar-text: #ffffff;
+            --main-bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text-color: #0f172a;
+            --accent-color: #2563eb;
+            --accent-hover: #1d4ed8;
+        }
+
+        [data-theme="dark"] {
+            --bg-window: #0f172a;
+            --sidebar-bg: #1e293b;
+            --sidebar-text: #e2e8f0;
+            --main-bg: #111827;
+            --card-bg: #1f2937;
+            --text-color: #f3f4f6;
+            --accent-color: #10b981;
+            --accent-hover: #059669;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background-color: var(--bg-window);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            transition: background 0.3s ease;
+        }
+
+        /* macOS Window Frame */
+        .mac-window {
+            width: 100%;
+            max-width: 1100px;
+            height: 90vh;
+            min-height: 620px;
+            background: var(--main-bg);
+            border-radius: var(--border-radius);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.12);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.4);
+            position: relative;
+            transition: background 0.3s ease;
+        }
+
+        /* Window Header / Traffic Lights */
+        .window-header {
+            height: 40px;
+            background: rgba(0, 0, 0, 0.03);
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            gap: 8px;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            user-select: none;
+            flex-shrink: 0;
+        }
+
+        .traffic-light {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .tl-red { background: #ff5f56; border: 1px solid #e0443e; }
+        .tl-yellow { background: #ffbd2e; border: 1px solid #dea123; }
+        .tl-green { background: #27c93f; border: 1px solid #1aab29; }
+
+        .window-title {
+            margin-left: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            opacity: 0.7;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Dashboard Main Layout */
+        .dashboard-body {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Left Sidebar */
+        .sidebar {
+            width: 250px;
+            background: var(--sidebar-bg);
+            color: var(--sidebar-text);
+            padding: 24px 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            flex-shrink: 0;
+            transition: background 0.3s ease;
+        }
+
+        .app-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+        }
+
+        /* Folded Note App Icon SVG */
+        .app-icon-svg {
+            width: 46px;
+            height: 46px;
+            border-radius: 12px;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+            flex-shrink: 0;
+            cursor: pointer;
+        }
+
+        .app-name {
+            font-size: 1.2rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .sidebar-section {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .sidebar-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.75;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        /* Folder List */
+        .folder-list {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            max-height: 220px;
+            overflow-y: auto;
+        }
+
+        .folder-item {
+            padding: 8px 12px;
+            border-radius: 10px;
+            font-size: 0.88rem;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(255, 255, 255, 0.08);
+            transition: background 0.2s;
+        }
+
+        .folder-item:hover, .folder-item.active {
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        .folder-badge {
+            background: rgba(0, 0, 0, 0.15);
+            font-size: 0.72rem;
+            padding: 2px 8px;
+            border-radius: 10px;
+        }
+
+        .theme-selector {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 6px;
+            background: rgba(0, 0, 0, 0.1);
+            padding: 6px;
+            border-radius: 10px;
+        }
+
+        .theme-btn {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .theme-btn:hover { transform: scale(1.15); }
+        .theme-btn.active { border-color: #ffffff; }
+
+        .btn-mint { background: #8ba898; }
+        .btn-lavender { background: #988ba8; }
+        .btn-peach { background: #a8918b; }
+        .btn-light { background: #ffffff; }
+        .btn-dark { background: #1f2937; }
+
+        .sidebar-btn {
+            background: rgba(255, 255, 255, 0.15);
+            border: none;
+            color: var(--sidebar-text);
+            padding: 10px 14px;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background 0.2s;
+            width: 100%;
+        }
+
+        .sidebar-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        /* Main Workspace Views */
+        .main-content {
+            flex: 1;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        /* VIEW 1: Home Note List */
+        .home-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .home-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .notes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 16px;
+            padding-bottom: 80px;
+        }
+
+        .note-card {
+            background: var(--card-bg);
+            border-radius: var(--card-radius);
+            padding: 18px;
+            box-shadow: var(--shadow-soft);
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 140px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: 1px solid rgba(0,0,0,0.04);
+            position: relative;
+        }
+
+        .note-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.09);
+        }
+
+        .note-card-title {
+            font-weight: 600;
+            font-size: 1rem;
+            margin-bottom: 8px;
+            color: var(--text-color);
+            line-height: 1.3;
+        }
+
+        .note-card-snippet {
+            font-size: 0.85rem;
+            opacity: 0.7;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            line-height: 1.4;
+        }
+
+        .note-card-footer {
+            margin-top: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.72rem;
+            opacity: 0.6;
+        }
+
+        .btn-card-delete {
+            background: transparent;
+            border: none;
+            color: #ef4444;
+            cursor: pointer;
+            font-size: 0.9rem;
+            padding: 4px;
+            border-radius: 6px;
+        }
+
+        .btn-card-delete:hover {
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        /* Floating Action Button (+) */
+        .fab-btn {
+            position: absolute;
+            bottom: 28px;
+            right: 28px;
+            width: 58px;
+            height: 58px;
+            border-radius: 50%;
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            font-size: 2rem;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.18);
+            cursor: pointer;
+            transition: transform 0.2s, background 0.2s;
+            z-index: 10;
+        }
+
+        .fab-btn:hover {
+            transform: scale(1.08);
+            background: var(--accent-hover);
+        }
+
+        /* VIEW 2: Editor View */
+        .editor-view {
+            display: none;
+            flex-direction: column;
+            gap: 16px;
+            height: 100%;
+        }
+
+        .editor-top-nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .btn-back {
+            background: transparent;
+            border: 1px solid rgba(0,0,0,0.1);
+            color: var(--text-color);
+            padding: 8px 16px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.88rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-back:hover {
+            background: rgba(0,0,0,0.05);
+        }
+
+        /* Editor Toolbar Controls */
+        .toolbar {
+            background: var(--card-bg);
+            padding: 10px 14px;
+            border-radius: var(--card-radius);
+            box-shadow: var(--shadow-soft);
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px;
+            border: 1px solid rgba(0,0,0,0.04);
+        }
+
+        .toolbar-group {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            border-right: 1px solid rgba(0,0,0,0.08);
+            padding-right: 8px;
+        }
+
+        .toolbar-group:last-child {
+            border-right: none;
+        }
+
+        .tool-btn {
+            background: transparent;
+            border: 1px solid rgba(0,0,0,0.08);
+            color: var(--text-color);
+            padding: 5px 10px;
+            border-radius: 8px;
+            font-size: 0.82rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 34px;
+        }
+
+        .tool-btn:hover {
+            background: rgba(0,0,0,0.05);
+        }
+
+        .tool-btn.active {
+            background: var(--accent-color);
+            color: #ffffff;
+            border-color: var(--accent-color);
+        }
+
+        select.tool-btn {
+            padding-right: 18px;
+            outline: none;
+        }
+
+        /* Export Formatting Options Bar */
+        .export-options-bar {
+            background: var(--card-bg);
+            padding: 10px 14px;
+            border-radius: var(--card-radius);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .export-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.85rem;
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .memo-preview-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px;
+            overflow-y: auto;
+        }
+
+        .memo-card-canvas {
+            width: 100%;
+            max-width: 480px;
+            min-height: 360px;
+            background: var(--card-bg);
+            border-radius: 18px;
+            padding: 28px;
+            box-shadow: var(--shadow-soft);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            transition: background 0.2s, box-shadow 0.2s;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .memo-card-canvas.transparent-bg {
+            background: transparent !important;
+            box-shadow: none !important;
+            border: 2px dashed var(--accent-color);
+        }
+
+        .memo-title-input {
+            width: 100%;
+            border: none;
+            outline: none;
+            background: transparent;
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--text-color);
+            margin-bottom: 12px;
+        }
+
+        .memo-textarea {
+            width: 100%;
+            flex: 1;
+            min-height: 240px;
+            border: none;
+            outline: none;
+            background: transparent;
+            resize: none;
+            color: var(--text-color);
+            font-size: 1.05rem;
+            line-height: 1.6;
+            direction: ltr;
+            text-align: left;
+        }
+
+        .btn-download {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transition: background 0.2s;
+        }
+
+        .btn-download:hover {
+            background: var(--accent-hover);
+        }
+
+        /* Hidden File Inputs */
+        input[type="file"] { display: none; }
+
+        /* Responsive Tablet & Mobile Adjustment */
+        @media (max-width: 768px) {
+            body { padding: 0; }
+            .mac-window { height: 100vh; border-radius: 0; }
+            .dashboard-body { flex-direction: column; }
+            .sidebar { width: 100%; padding: 14px 16px; gap: 12px; }
+            .folder-list { max-height: 90px; }
+            .sidebar-section { display: none; }
+            .sidebar-section.always-show { display: flex; }
+            .fab-btn { bottom: 20px; right: 20px; width: 52px; height: 52px; }
+            .toolbar { gap: 6px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="mac-window">
+        <!-- Window Traffic Light Header -->
+        <div class="window-header">
+            <div class="traffic-light tl-red"></div>
+            <div class="traffic-light tl-yellow"></div>
+            <div class="traffic-light tl-green"></div>
+            <span class="window-title">
+                <!-- Inline Folded Note SVG Icon -->
+                <svg class="app-icon-svg" viewBox="0 0 100 100" style="width:20px; height:20px;">
+                    <rect x="10" y="10" width="80" height="80" rx="22" fill="#FFAE34"/>
+                    <rect x="14" y="14" width="72" height="72" rx="18" fill="#FFF8F0"/>
+                    <circle cx="40" cy="70" r="5" fill="#E63946"/>
+                    <circle cx="60" cy="70" r="5" fill="#E63946"/>
+                    <path d="M 64 14 C 74 14, 86 26, 86 36 L 72 36 C 68 36, 64 32, 64 28 Z" fill="#FFAE34"/>
+                </svg>
+                FikraMemo — Aesthetic Memo App
+            </span>
+        </div>
+
+        <div class="dashboard-body">
+            <!-- Left Sidebar -->
+            <div class="sidebar">
+                <div class="app-brand" onclick="document.getElementById('iconUpload').click()" title="Klik untuk ganti ikon">
+                    <svg class="app-icon-svg" id="appIconSvg" viewBox="0 0 100 100">
+                        <rect x="8" y="8" width="84" height="84" rx="24" fill="#FF9F1C"/>
+                        <rect x="14" y="14" width="72" height="72" rx="18" fill="#FAF6F0"/>
+                        <circle cx="38" cy="68" r="5.5" fill="#E63946"/>
+                        <circle cx="62" cy="68" r="5.5" fill="#E63946"/>
+                        <path d="M 62 14 C 74 14, 86 26, 86 38 L 72 38 C 67 38, 62 33, 62 28 Z" fill="#FF8800"/>
+                        <path d="M 62 14 L 86 38 L 62 38 Z" fill="#FFE5B4" opacity="0.7"/>
+                    </svg>
+                    <div>
+                        <div class="app-name">FikraMemo</div>
+                        <span style="font-size: 0.7rem; opacity: 0.8;">Aesthetic & Offline</span>
+                    </div>
+                </div>
+
+                <!-- Folder Section -->
+                <div class="sidebar-section always-show">
+                    <span class="sidebar-label">Folder Catatan</span>
+                    <div class="folder-list" id="folderListContainer">
+                        <!-- Folders dynamically rendered -->
+                    </div>
+                    <button class="sidebar-btn" style="margin-top: 4px;" onclick="promptNewFolder()">
+                        <span>+ Tambah Folder</span>
+                    </button>
+                </div>
+
+                <!-- Theme Section -->
+                <div class="sidebar-section">
+                    <span class="sidebar-label">Tema Warna</span>
+                    <div class="theme-selector">
+                        <button class="theme-btn btn-mint active" onclick="setTheme('mint', this)"></button>
+                        <button class="theme-btn btn-lavender" onclick="setTheme('lavender', this)"></button>
+                        <button class="theme-btn btn-peach" onclick="setTheme('peach', this)"></button>
+                        <button class="theme-btn btn-light" onclick="setTheme('light', this)"></button>
+                        <button class="theme-btn btn-dark" onclick="setTheme('dark', this)"></button>
+                    </div>
+                </div>
+
+                <!-- Custom Font Import Button -->
+                <div class="sidebar-section">
+                    <span class="sidebar-label">Custom Font</span>
+                    <button class="sidebar-btn" onclick="document.getElementById('fontUpload').click()">
+                        <span>📂 Impor Font (.ttf/.otf)</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Main Area -->
+            <div class="main-content">
+                
+                <!-- VIEW 1: HOME NOTE LIST -->
+                <div id="homeView">
+                    <div class="home-header">
+                        <h2 class="home-title" id="currentFolderName">Semua Memo</h2>
+                    </div>
+
+                    <div class="notes-grid" id="notesGrid">
+                        <!-- Memo cards dynamically rendered from localStorage -->
+                    </div>
+
+                    <!-- Floating (+) Button -->
+                    <button class="fab-btn" onclick="createNewMemo()" title="Buat Memo Baru">+</button>
+                </div>
+
+                <!-- VIEW 2: EDITOR VIEW -->
+                <div class="editor-view" id="editorView">
+                    <div class="editor-top-nav">
+                        <button class="btn-back" onclick="saveAndCloseEditor()">
+                            ← Kembali ke Beranda
+                        </button>
+                        <span style="font-size: 0.85rem; opacity: 0.7;" id="saveStatusIndicator">Tersimpan Otomatis</span>
+                    </div>
+
+                    <!-- Toolbar formatting controls -->
+                    <div class="toolbar">
+                        <!-- Text Direction (LTR / RTL) -->
+                        <div class="toolbar-group">
+                            <button class="tool-btn active" id="btnLtr" onclick="setDirection('ltr')">LTR</button>
+                            <button class="tool-btn" id="btnRtl" onclick="setDirection('rtl')">RTL (عربي)</button>
+                        </div>
+
+                        <!-- Text Alignments (Left, Center, Right, JUSTIFY) -->
+                        <div class="toolbar-group">
+                            <button class="tool-btn active" id="alignLeft" onclick="setAlign('left')" title="Rata Kiri">←</button>
+                            <button class="tool-btn" id="alignCenter" onclick="setAlign('center')" title="Rata Tengah">↔</button>
+                            <button class="tool-btn" id="alignRight" onclick="setAlign('right')" title="Rata Kanan">→</button>
+                            <button class="tool-btn" id="alignJustify" onclick="setAlign('justify')" title="Rata Kanan Kiri (Justify)">☰</button>
+                        </div>
+
+                        <!-- Font Family Selector -->
+                        <div class="toolbar-group">
+                            <select class="tool-btn" id="fontSelect" onchange="setFont(this.value)">
+                                <option value="'Inter', sans-serif">Modern Clean (Inter)</option>
+                                <option value="'Playfair Display', serif">Classic Serif</option>
+                                <option value="'Caveat', cursive">Tulisan Tangan</option>
+                                <option value="'Courier Prime', monospace">Typewriter</option>
+                                <option value="'Amiri', serif">Arabic Naskh</option>
+                            </select>
+                        </div>
+
+                        <!-- Font Size Selector -->
+                        <div class="toolbar-group">
+                            <select class="tool-btn" id="fontSizeSelect" onchange="setFontSize(this.value)">
+                                <option value="0.95rem">Kecil</option>
+                                <option value="1.05rem" selected>Sedang</option>
+                                <option value="1.3rem">Besar</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Export Options Bar -->
+                    <div class="export-options-bar">
+                        <div class="export-controls">
+                            <span>Format Gambar:</span>
+                            <select class="tool-btn" id="exportFormat">
+                                <option value="png">PNG</option>
+                                <option value="jpeg">JPG</option>
+                            </select>
+
+                            <label class="checkbox-label" id="transparentLabel">
+                                <input type="checkbox" id="transparentBg" onchange="toggleTransparentBg(this.checked)">
+                                Background Transparan (PNG)
+                            </label>
+                        </div>
+
+                        <button class="btn-download" onclick="downloadMemoImage()">
+                            💾 Unduh Gambar
+                        </button>
+                    </div>
+
+                    <!-- Canvas Editor Preview Container -->
+                    <div class="memo-preview-container">
+                        <div class="memo-card-canvas" id="memoCanvas">
+                            <input type="text" id="memoTitleInput" class="memo-title-input" placeholder="Judul Memo..." oninput="autoSaveMemo()">
+                            <textarea id="memoContentInput" class="memo-textarea" placeholder="Tulis catatan atau memo kamu di sini..." oninput="autoSaveMemo()"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden File Inputs -->
+    <input type="file" id="iconUpload" accept="image/*" onchange="loadAppIcon(event)">
+    <input type="file" id="fontUpload" accept=".ttf,.otf,.woff,.woff2" onchange="loadCustomFont(event)">
+
+    <script>
+        // LocalStorage Keys
+        const STORAGE_KEY_MEMOS = 'fikramemo_data_memos_v1';
+        const STORAGE_KEY_FOLDERS = 'fikramemo_data_folders_v1';
+
+        // State Data
+        let folders = JSON.parse(localStorage.getItem(STORAGE_KEY_FOLDERS)) || ['Umum', 'Pribadi', 'Kerja'];
+        let memos = JSON.parse(localStorage.getItem(STORAGE_KEY_MEMOS)) || [];
+        let currentFolder = 'Umum';
+        let currentEditingMemoId = null;
+
+        // Elements
+        const homeView = document.getElementById('homeView');
+        const editorView = document.getElementById('editorView');
+        const notesGrid = document.getElementById('notesGrid');
+        const folderListContainer = document.getElementById('folderListContainer');
+        const currentFolderName = document.getElementById('currentFolderName');
+        const memoCanvas = document.getElementById('memoCanvas');
+        const memoTitleInput = document.getElementById('memoTitleInput');
+        const memoContentInput = document.getElementById('memoContentInput');
+
+        // Initial Load
+        window.onload = function() {
+            renderFolders();
+            renderNotes();
+        };
+
+        // Theme Switcher
+        function setTheme(themeName, element) {
+            document.documentElement.setAttribute('data-theme', themeName);
+            document.querySelectorAll('.theme-btn').forEach(btn => btn.classList.remove('active'));
+            if (element) element.classList.add('active');
+        }
+
+        // Folder Rendering
+        function renderFolders() {
+            folderListContainer.innerHTML = '';
+            
+            // All Memos Option
+            const allItem = document.createElement('div');
+            allItem.className = `folder-item ${currentFolder === 'ALL' ? 'active' : ''}`;
+            allItem.onclick = () => selectFolder('ALL');
+            allItem.innerHTML = `<span>📁 Semua Memo</span><span class="folder-badge">${memos.length}</span>`;
+            folderListContainer.appendChild(allItem);
+
+            folders.forEach(f => {
+                const count = memos.filter(m => m.folder === f).length;
+                const item = document.createElement('div');
+                item.className = `folder-item ${currentFolder === f ? 'active' : ''}`;
+                item.onclick = () => selectFolder(f);
+                item.innerHTML = `<span>📂 ${f}</span><span class="folder-badge">${count}</span>`;
+                folderListContainer.appendChild(item);
+            });
+        }
+
+        function selectFolder(folderName) {
+            currentFolder = folderName;
+            currentFolderName.textContent = folderName === 'ALL' ? 'Semua Memo' : `Folder: ${folderName}`;
+            renderFolders();
+            renderNotes();
+        }
+
+        function promptNewFolder() {
+            const name = prompt('Masukkan nama folder baru:');
+            if (name && name.trim() !== '') {
+                const cleanName = name.trim();
+                if (!folders.includes(cleanName)) {
+                    folders.push(cleanName);
+                    localStorage.setItem(STORAGE_KEY_FOLDERS, JSON.stringify(folders));
+                    selectFolder(cleanName);
+                }
+            }
+        }
+
+        // Notes Rendering on Home
+        function renderNotes() {
+            notesGrid.innerHTML = '';
+            const filtered = currentFolder === 'ALL' ? memos : memos.filter(m => m.folder === currentFolder);
+
+            if (filtered.length === 0) {
+                notesGrid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 40px; opacity: 0.5;">Belum ada memo di folder ini. Klik tombol (+) untuk membuat!</div>`;
+                return;
+            }
+
+            filtered.forEach(memo => {
+                const card = document.createElement('div');
+                card.className = 'note-card';
+                card.onclick = () => openEditor(memo.id);
+
+                card.innerHTML = `
+                    <div>
+                        <div class="note-card-title">${escapeHtml(memo.title || 'Memo Tanpa Judul')}</div>
+                        <div class="note-card-snippet">${escapeHtml(memo.content || 'Kosong...')}</div>
+                    </div>
+                    <div class="note-card-footer">
+                        <span>${memo.date}</span>
+                        <button class="btn-card-delete" onclick="deleteMemo(event, '${memo.id}')" title="Hapus Memo">🗑️</button>
+                    </div>
+                `;
+                notesGrid.appendChild(card);
+            });
+        }
+
+        // Navigation
+        function createNewMemo() {
+            const newMemo = {
+                id: 'memo_' + Date.now(),
+                title: '',
+                content: '',
+                folder: currentFolder === 'ALL' ? 'Umum' : currentFolder,
+                date: new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }),
+                align: 'left',
+                dir: 'ltr',
+                font: "'Inter', sans-serif"
+            };
+            memos.unshift(newMemo);
+            saveMemosToStorage();
+            openEditor(newMemo.id);
+        }
+
+        function openEditor(id) {
+            currentEditingMemoId = id;
+            const memo = memos.find(m => m.id === id);
+            if (!memo) return;
+
+            memoTitleInput.value = memo.title || '';
+            memoContentInput.value = memo.content || '';
+            
+            // Apply memo properties
+            setDirection(memo.dir || 'ltr');
+            setAlign(memo.align || 'left');
+            setFont(memo.font || "'Inter', sans-serif");
+
+            homeView.style.display = 'none';
+            editorView.style.display = 'flex';
+        }
+
+        function saveAndCloseEditor() {
+            autoSaveMemo();
+            editorView.style.display = 'none';
+            homeView.style.display = 'block';
+            renderFolders();
+            renderNotes();
+        }
+
+        function autoSaveMemo() {
+            if (!currentEditingMemoId) return;
+            const memo = memos.find(m => m.id === currentEditingMemoId);
+            if (memo) {
+                memo.title = memoTitleInput.value;
+                memo.content = memoContentInput.value;
+                memo.dir = memoContentInput.style.direction || 'ltr';
+                memo.align = memoContentInput.style.textAlign || 'left';
+                memo.font = memoContentInput.style.fontFamily || "'Inter', sans-serif";
+                saveMemosToStorage();
+            }
+        }
+
+        function deleteMemo(event, id) {
+            event.stopPropagation();
+            if (confirm('Apakah Anda yakin ingin menghapus memo ini?')) {
+                memos = memos.filter(m => m.id !== id);
+                saveMemosToStorage();
+                renderFolders();
+                renderNotes();
+            }
+        }
+
+        function saveMemosToStorage() {
+            localStorage.setItem(STORAGE_KEY_MEMOS, JSON.stringify(memos));
+        }
+
+        // Formatting Functions
+        function setDirection(dir) {
+            memoContentInput.style.direction = dir;
+            memoTitleInput.style.direction = dir;
+            document.getElementById('btnLtr').classList.toggle('active', dir === 'ltr');
+            document.getElementById('btnRtl').classList.toggle('active', dir === 'rtl');
+            if (dir === 'rtl' && memoContentInput.style.textAlign === 'left') {
+                setAlign('right');
+            }
+            autoSaveMemo();
+        }
+
+        function setAlign(align) {
+            memoContentInput.style.textAlign = align;
+            memoTitleInput.style.textAlign = align;
+            ['Left', 'Center', 'Right', 'Justify'].forEach(a => {
+                const btn = document.getElementById('align' + a);
+                if (btn) btn.classList.toggle('active', a.toLowerCase() === align);
+            });
+            autoSaveMemo();
+        }
+
+        function setFont(fontFamily) {
+            memoContentInput.style.fontFamily = fontFamily;
+            document.getElementById('fontSelect').value = fontFamily;
+            autoSaveMemo();
+        }
+
+        function setFontSize(size) {
+            memoContentInput.style.fontSize = size;
+        }
+
+        function toggleTransparentBg(isTransparent) {
+            memoCanvas.classList.toggle('transparent-bg', isTransparent);
+        }
+
+        // Custom Font Upload
+        function loadCustomFont(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const fontName = 'CustomFont_' + Date.now();
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const customFont = new FontFace(fontName, `url(${e.target.result})`);
+                    customFont.load().then(function(loadedFont) {
+                        document.fonts.add(loadedFont);
+                        const fontSelect = document.getElementById('fontSelect');
+                        const option = document.createElement('option');
+                        option.value = `'${fontName}', sans-serif`;
+                        option.textContent = `Custom: ${file.name.split('.')[0]}`;
+                        fontSelect.appendChild(option);
+                        setFont(option.value);
+                    }).catch(function() {
+                        alert('Gagal memuat font. Gunakan file format .ttf atau .otf.');
+                    });
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Custom App Icon Upload
+        function loadAppIcon(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const iconSvg = document.getElementById('appIconSvg');
+                    iconSvg.outerHTML = `<img src="${e.target.result}" style="width:46px; height:46px; border-radius:12px; object-fit:cover;">`;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Export Image PNG / JPG
+        function downloadMemoImage() {
+            const format = document.getElementById('exportFormat').value;
+            const isTransparent = document.getElementById('transparentBg').checked && format === 'png';
+
+            if (typeof html2canvas !== 'undefined') {
+                html2canvas(memoCanvas, {
+                    scale: 2,
+                    backgroundColor: isTransparent ? null : getComputedStyle(document.body).getPropertyValue('--card-bg').trim(),
+                    useCORS: true
+                }).then(canvas => {
+                    const link = document.createElement('a');
+                    const fileName = (memoTitleInput.value.trim() || 'FikraMemo') + `.${format === 'jpeg' ? 'jpg' : 'png'}`;
+                    link.download = fileName;
+                    link.href = canvas.toDataURL(`image/${format}`, 0.95);
+                    link.click();
+                }).catch(() => {
+                    alert('Gagal mengunduh gambar.');
+                });
+            } else {
+                alert('Library penangkap gambar belum dimuat.');
+            }
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+        }
+    </script>
+</body>
+</html>
